@@ -58,7 +58,7 @@
 #pragma mark - Batch Align
 
 - (CGFloat)pl_alignViewsVertically:(NSArray *)viewsAndSpacings {
-    return [self pl_alignViewsVerticallyCentering:viewsAndSpacings];
+    return [self pl_alignViewsVertically:viewsAndSpacings additionallyAligningTo:NSLayoutAttributeNotAnAttribute withMargin:0];
 }
 
 - (CGFloat)pl_alignViewsVerticallyCentering:(NSArray *)viewsAndSpacings {
@@ -96,6 +96,8 @@
             case NSLayoutAttributeRight:
             case NSLayoutAttributeCenterX:
                 [view pl_alignTo:attribute ofView:self withMargin:marginFromAttribute];
+                break;
+            case NSLayoutAttributeNotAnAttribute:
                 break;
             default:
                 @throw [NSException exceptionWithName:@"PLLayoutUnsupportedAttributeException" reason:@"This attribute is not supported."
@@ -137,6 +139,8 @@
             case NSLayoutAttributeCenterY:
                 [view pl_alignTo:attribute ofView:self withMargin:marginFromAttribute];
                 break;
+            case NSLayoutAttributeNotAnAttribute:
+                break;
             default:
                 @throw [NSException exceptionWithName:@"PLLayoutUnsupportedAttributeException" reason:@"This attribute is not supported."
                                              userInfo:nil];
@@ -147,9 +151,9 @@
 
 #pragma mark - Fill superviews
 
--(void)pl_fillSuperViewVerticallyWithViews:(NSArray *)viewsAndSpacing expandableViews:(NSSet *)expandableViews{
+-(void)pl_fillSuperViewVerticallyWithViews:(NSArray *)views expandableViews:(NSSet *)expandableViews{
     CGFloat allNonExpandableViewsHeight = 0;
-    for (UIView *view in viewsAndSpacing) {
+    for (UIView *view in views) {
         allNonExpandableViewsHeight += [expandableViews containsObject:view] ? 0 : view.pl_height; //expandable doesn't count
     }
     
@@ -160,23 +164,27 @@
         expandableView.pl_height = heightForSingleExpandableView;
     }
     
-    [self pl_alignViewsVertically:viewsAndSpacing];
+    UIView *firstView = views.firstObject;
+    [firstView pl_alignTo:NSLayoutAttributeTop ofView:self withMargin:0];
+    [self pl_alignViewsVertically:views];
 }
 
--(void)pl_fillSuperViewHorizontallyWithViews:(NSArray *)viewsAndSpacing expandableViews:(NSSet *)expandableViews{
+-(void)pl_fillSuperViewHorizontallyWithViews:(NSArray *)views expandableViews:(NSSet *)expandableViews{
     CGFloat allNonExpandableViewsWidth = 0;
-    for (UIView *view in viewsAndSpacing) {
-        allNonExpandableViewsWidth += [expandableViews containsObject:view] ? 0 : view.pl_height; //expandable doesn't count
+    for (UIView *view in views) {
+        allNonExpandableViewsWidth += [expandableViews containsObject:view] ? 0 : view.pl_width; //expandable doesn't count
     }
     
     CGFloat freeHorizontalSpace = CGRectGetWidth(self.bounds) - allNonExpandableViewsWidth;
     CGFloat widthForSingleExpandableView = freeHorizontalSpace / (CGFloat)expandableViews.count;
     
     for(UIView *expandableView in expandableViews){
-        expandableView.pl_height = widthForSingleExpandableView;
+        expandableView.pl_width = widthForSingleExpandableView;
     }
     
-    [self pl_alignViewsVertically:viewsAndSpacing];
+    UIView *firstView = views.firstObject;
+    [firstView pl_alignTo:NSLayoutAttributeLeft ofView:self withMargin:0];
+    [self pl_alignViewsHorizontally:views centeringWithMargin:0];
 }
 
 #pragma mark - Arrange superviews
@@ -186,7 +194,7 @@
     for (UIView *view in subviews) {
         subviewsTotalHeight += CGRectGetHeight(view.bounds);
     }
-    
+
     CGFloat freeVerticalSpace = CGRectGetHeight(self.bounds) - subviewsTotalHeight;
     
     NSInteger numberOfSpacers = topAndBottomSpaces ? subviews.count-1 + 2 : subviews.count-1;
@@ -208,6 +216,9 @@
         [viewsAndSpacers addObject:@(spacerHeight)];
     }
 
+    UIView *firstSubview = subviews.firstObject;
+    [firstSubview pl_alignTo:NSLayoutAttributeTop ofView:self withMargin:0];
+    
     [self pl_alignViewsVertically:viewsAndSpacers additionallyAligningTo:NSLayoutAttributeCenterX withMargin:0];
 }
 
@@ -238,6 +249,9 @@
         [viewsAndSpacers addObject:@(spacerWidth)];
     }
 
+    UIView *firstSubview = subviews.firstObject;
+    [firstSubview pl_alignTo:NSLayoutAttributeLeft ofView:self withMargin:0];
+    
     [self pl_alignViewsHorizontally:viewsAndSpacers additionallyAligningTo:NSLayoutAttributeCenterY withMargin:0];
 }
 
@@ -266,7 +280,7 @@
     CGRect frame = self.frame;
     switch (edge) {
         case NSLayoutAttributeLeft: {
-            CGFloat xDelta = CGRectGetMinX(frame) + inset;
+            CGFloat xDelta = CGRectGetMinX(frame) - inset;
             frame.origin.x = 0 + inset;
             frame.size.width += xDelta;
             break;
@@ -278,7 +292,7 @@
             break;
         }
         case NSLayoutAttributeTop: {
-            CGFloat yDelta = CGRectGetMinY(frame) + inset;
+            CGFloat yDelta = CGRectGetMinY(frame) - inset;
             frame.origin.y = 0 + inset;
             frame.size.height += yDelta;
             break;
