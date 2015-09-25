@@ -2,7 +2,7 @@
 
 ---
 
-This repo is deprecated. It has bben moved to https://github.com/Polidea/PLXFrameLayout.
+This repo is deprecated. It has been moved to https://github.com/Polidea/PLXFrameLayout.
 
 ---
 
