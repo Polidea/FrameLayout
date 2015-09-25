@@ -1,5 +1,11 @@
 # FrameLayout
 
+---
+
+This repo is deprecated. It has bben moved to https://github.com/Polidea/PLXFrameLayout.
+
+---
+
 ###Short Desciption
 **FrameLayout** is a small tool for positioning, sizing and arranging views without using CGRects. **FrameLayout** also provides sets of convinient read-write properties that extract/set discrete values from view's frame, like: width, height, minX/Y, maxX/Y.
 
